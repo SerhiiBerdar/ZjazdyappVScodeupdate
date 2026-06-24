@@ -177,6 +177,11 @@ export default function ExpLayout({ allData, stStats }) {
   const hb = {}; allData.forEach(d => { hb[d.hour] = (hb[d.hour]||0)+1 })
   const peak = Object.entries(hb).sort((a,b) => b[1]-a[1])[0]
 
+  // diagnostika: stanice z dát, ktoré vyzerajú ako expedičné (L* / SL*),
+  // ale v layoute sa nenašli — odhalí reálne nezrovnalosti v názvoch
+  const dataStations = new Set(allData.map(d => d.station.toUpperCase()))
+  const unmatched = [...dataStations].filter(s => /^S?L\d/.test(s) && !expNames.has(s)).sort()
+
   const btn = {
     width: 34, height: 34, borderRadius: 8, cursor: 'pointer',
     background: 'var(--panel)', border: '1px solid var(--border)',
@@ -228,6 +233,17 @@ export default function ExpLayout({ allData, stStats }) {
       {!allData.length && (
         <div style={{ textAlign: 'center', marginTop: 10, fontSize: 11, color: 'var(--text3)' }}>
           Načítajte dáta v záložke Dashboard — stanice sa ofarbia podľa reálnej vyťaženosti
+        </div>
+      )}
+
+      {allData.length > 0 && (
+        <div style={{ marginTop: 10, fontSize: 11, color: 'var(--text3)' }}>
+          Napárovaných na layout: <b style={{ color: 'var(--text2)' }}>{expActive}</b> staníc · {expTotal.toLocaleString('sk')} priechodov
+          {unmatched.length > 0 && (
+            <span style={{ color: 'var(--accent3)' }}>
+              {' · '}⚠️ V dátach sú „L*/SL*" stanice mimo layoutu ({unmatched.length}): {unmatched.join(', ')}
+            </span>
+          )}
         </div>
       )}
 
