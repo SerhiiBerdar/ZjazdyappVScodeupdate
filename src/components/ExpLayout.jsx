@@ -19,6 +19,7 @@ export default function ExpLayout({ allData, stStats }) {
   const [selected, setSelected]     = useState(null)
   const [scale, setScale]           = useState(1)
   const [fs, setFs]                 = useState(false)
+  const [panning, setPanning]       = useState(false)
   const svgRef      = useRef(null)   // div that holds the injected <svg>
   const viewportRef = useRef(null)   // scrolling viewport
   const containerRef= useRef(null)   // wrapper (for fullscreen)
@@ -128,27 +129,33 @@ export default function ExpLayout({ allData, stStats }) {
     }
   }, [zoomAt])
 
-  // drag to pan (adjusts scroll position)
-  const onPointerDown = (e) => {
-    const vp = viewportRef.current
-    drag.current = { sx: e.clientX, sy: e.clientY, sl: vp.scrollLeft, st: vp.scrollTop }
-    moved.current = false
-    e.currentTarget.setPointerCapture?.(e.pointerId)
-  }
-  const onPointerMove = (e) => {
+  // drag to pan — uses window listeners (NO pointer capture) so the native
+  // click still reaches the station rect and opens the detail popup
+  const handleMove = useCallback((e) => {
     if (!drag.current) return
     const dx = e.clientX - drag.current.sx, dy = e.clientY - drag.current.sy
     if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved.current = true
     const vp = viewportRef.current
+    if (!vp) return
     vp.scrollLeft = drag.current.sl - dx
     vp.scrollTop  = drag.current.st - dy
-  }
-  const endDrag = (e) => {
-    if (!drag.current) return
+  }, [])
+  const handleUp = useCallback(() => {
     drag.current = null
-    e.currentTarget.releasePointerCapture?.(e.pointerId)
+    setPanning(false)
+    window.removeEventListener('pointermove', handleMove)
+    window.removeEventListener('pointerup', handleUp)
     setTimeout(() => { moved.current = false }, 0)
-  }
+  }, [handleMove])
+  const onPointerDown = useCallback((e) => {
+    if (e.button !== 0) return
+    const vp = viewportRef.current
+    drag.current = { sx: e.clientX, sy: e.clientY, sl: vp.scrollLeft, st: vp.scrollTop }
+    moved.current = false
+    setPanning(true)
+    window.addEventListener('pointermove', handleMove)
+    window.addEventListener('pointerup', handleUp)
+  }, [handleMove, handleUp])
 
   // fullscreen ("otvoriť v okne")
   const toggleFs = useCallback(() => {
@@ -201,10 +208,7 @@ export default function ExpLayout({ allData, stStats }) {
           ref={viewportRef}
           onWheel={onWheel}
           onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={endDrag}
-          onPointerLeave={endDrag}
-          style={{ width: '100%', height: fs ? '100vh' : '72vh', overflow: 'auto', cursor: drag.current ? 'grabbing' : 'grab', touchAction: 'none' }}
+          style={{ width: '100%', height: fs ? '100vh' : '72vh', overflow: 'auto', cursor: panning ? 'grabbing' : 'grab', touchAction: 'none' }}
         >
           <div ref={svgRef} style={{ width: 'fit-content' }} />
         </div>
