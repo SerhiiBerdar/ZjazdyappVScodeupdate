@@ -73,7 +73,8 @@ export function buildFlowPairs(data) {
 }
 
 export function getSlots(data, resMin, filterStation) {
-  const src = filterStation ? data.filter(d => d.station === filterStation) : data
+  const fs = filterStation ? filterStation.toUpperCase() : null
+  const src = fs ? data.filter(d => d.station.toUpperCase() === fs) : data
   const buckets = {}
   src.forEach(d => {
     const sm = Math.floor((d.hour * 60 + d.minute) / resMin) * resMin
