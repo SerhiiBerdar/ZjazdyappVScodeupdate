@@ -20,4 +20,4 @@ npm run dev
 1. V Exceli označ všetky riadky (3 stĺpce: **Čiarový kód** · **Stanica** · **Dátum/čas**)
 2. Skopíruj `Ctrl+C`
 3. Vlož do poľa v záložke Dashboard `Ctrl+V`
-4. Klikni **▶ Analyzovať**
+4. Klikni **▶ Analyzovať*
