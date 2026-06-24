@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
-export default function Header({ recordCount }) {
+export default function Header({ recordCount, onOpenMenu }) {
   return (
     <header style={{
       background: 'var(--panel)', borderBottom: '1px solid var(--border)',
@@ -22,6 +21,27 @@ export default function Header({ recordCount }) {
       }}>
         {recordCount > 0 ? `${recordCount.toLocaleString('sk')} záznamov` : 'Žiadne dáta'}
       </div>
+      <button
+        onClick={onOpenMenu}
+        title="Hlavné menu"
+        style={{
+          background: 'transparent', border: '1px solid var(--border)',
+          color: 'var(--text2)', borderRadius: 8, cursor: 'pointer',
+          padding: '6px 12px', fontSize: 13, fontWeight: 500,
+          display: 'flex', alignItems: 'center', gap: 6,
+          transition: 'all .15s',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.borderColor = 'var(--accent)'
+          e.currentTarget.style.color = 'var(--accent)'
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.borderColor = 'var(--border)'
+          e.currentTarget.style.color = 'var(--text2)'
+        }}
+      >
+        ☰ Menu
+      </button>
     </header>
   )
 }
