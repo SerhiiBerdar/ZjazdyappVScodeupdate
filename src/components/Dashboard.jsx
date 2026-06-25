@@ -8,9 +8,13 @@ import FlowChart from './FlowChart'
 import KltTrace from './KltTrace'
 import StationsTable from './StationsTable'
 import FilterBar from './FilterBar'
+import ManualEntryForm from './ManualEntryForm'
+import ExcelImport from './ExcelImport'
 import { chronoHours } from '../utils/parser'
+import { exportToExcel } from '../utils/excelExport'
 
-export default function Dashboard({ allData, stStats, flowData, parseStatus, onParse, onClear }) {
+export default function Dashboard({ allData, stStats, flowData, parseStatus, onParse, onClear, onAddRecord, onImportRecords }) {
+  const [inputTab, setInputTab]     = useState('paste') // 'paste' | 'manual' | 'xlsx'
   const [pasteText, setPasteText]   = useState('')
   const [filters, setFilters]       = useState({ barcode:'', station:'', hour:'' })
   const [timelineRes, setTimelineRes]               = useState(15)
@@ -48,58 +52,115 @@ export default function Dashboard({ allData, stStats, flowData, parseStatus, onP
   const handleParse = () => onParse(pasteText)
   const handleClear = () => { onClear(); setPasteText(''); setFilters({ barcode:'', station:'', hour:'' }) }
 
+  const INPUT_TABS = [
+    { id: 'paste',  label: '📋 Vložiť text' },
+    { id: 'manual', label: '✏️ Zadať ručne' },
+    { id: 'xlsx',   label: '📂 Import .xlsx' },
+  ]
+
   return (
     <main style={{ padding: 20, maxWidth: 1500, margin: '0 auto' }}>
 
       {/* ── Data input ── */}
       <div className="card fade-in-up" style={{ padding: 22, marginBottom: 20 }}>
-        <div style={{
-          fontSize: 10, fontWeight: 700, color: 'var(--text2)',
-          textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 12,
-          display: 'flex', alignItems: 'center', gap: 8,
-        }}>
+
+        {/* Header row with status dot, title, and tab switcher */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
           <span style={{
-            width: 6, height: 6, borderRadius: '50%',
+            width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
             background: allData.length > 0 ? 'var(--accent)' : 'var(--text3)',
             boxShadow: allData.length > 0 ? '0 0 8px var(--accent-glow)' : 'none',
-            display: 'inline-block', flexShrink: 0,
+            display: 'inline-block',
           }} />
-          Vložiť dáta z Excelu
+          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.12em' }}>
+            Načítať dáta
+          </span>
+
+          {/* Tab switcher */}
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {INPUT_TABS.map(t => (
+              <button
+                key={t.id}
+                className={`pill ${inputTab === t.id ? 'active' : ''}`}
+                onClick={() => setInputTab(t.id)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
-        <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 12, lineHeight: 1.7 }}>
-          Označte v Exceli riadky (3 stĺpce:{' '}
-          <code style={{ background: 'rgba(200,255,0,0.08)', border: '1px solid rgba(200,255,0,0.2)', padding: '1px 6px', borderRadius: 4, color: 'var(--accent)', fontSize: 10 }}>Čiarový kód</code>
-          {' · '}
-          <code style={{ background: 'rgba(200,255,0,0.08)', border: '1px solid rgba(200,255,0,0.2)', padding: '1px 6px', borderRadius: 4, color: 'var(--accent)', fontSize: 10 }}>Stanica</code>
-          {' · '}
-          <code style={{ background: 'rgba(200,255,0,0.08)', border: '1px solid rgba(200,255,0,0.2)', padding: '1px 6px', borderRadius: 4, color: 'var(--accent)', fontSize: 10 }}>Dátum/čas</code>
-          ), skopírujte <kbd style={{ background: 'var(--surface2)', border: '1px solid var(--border2)', padding: '1px 5px', borderRadius: 4, fontSize: 10 }}>Ctrl+C</kbd> a vložte <kbd style={{ background: 'var(--surface2)', border: '1px solid var(--border2)', padding: '1px 5px', borderRadius: 4, fontSize: 10 }}>Ctrl+V</kbd>.
-        </div>
-        <textarea
-          value={pasteText}
-          onChange={e => setPasteText(e.target.value)}
-          style={{ width: '100%', minHeight: 90, resize: 'vertical', fontFamily: 'Consolas,Monaco,monospace', fontSize: 12 }}
-          placeholder={"80145688\tL47\t23.06.2026 06:00:57\n80145688\tSO01\t23.06.2026 05:54:55\n..."}
-        />
-        <div style={{ display: 'flex', gap: 10, marginTop: 12, alignItems: 'center' }}>
-          <button className="btn" onClick={handleParse}>▶ Analyzovať</button>
-          <button className="btn-ghost" onClick={handleClear}>✕ Vymazať</button>
-          {parseStatus.msg && (
-            <span style={{
-              fontSize: 12, fontWeight: 500,
-              color: parseStatus.ok ? 'var(--accent)' : 'var(--accent3)',
-              textShadow: parseStatus.ok ? '0 0 12px rgba(200,255,0,0.3)' : 'none',
-            }}>
-              {parseStatus.msg}
-            </span>
-          )}
-        </div>
+
+        {/* ── Tab: Paste text ── */}
+        {inputTab === 'paste' && (
+          <>
+            <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 12, lineHeight: 1.7 }}>
+              Označte v Exceli riadky (3 stĺpce:{' '}
+              <code style={{ background: 'rgba(200,255,0,0.08)', border: '1px solid rgba(200,255,0,0.2)', padding: '1px 6px', borderRadius: 4, color: 'var(--accent)', fontSize: 10 }}>Čiarový kód</code>
+              {' · '}
+              <code style={{ background: 'rgba(200,255,0,0.08)', border: '1px solid rgba(200,255,0,0.2)', padding: '1px 6px', borderRadius: 4, color: 'var(--accent)', fontSize: 10 }}>Stanica</code>
+              {' · '}
+              <code style={{ background: 'rgba(200,255,0,0.08)', border: '1px solid rgba(200,255,0,0.2)', padding: '1px 6px', borderRadius: 4, color: 'var(--accent)', fontSize: 10 }}>Dátum/čas</code>
+              ), skopírujte <kbd style={{ background: 'var(--surface2)', border: '1px solid var(--border2)', padding: '1px 5px', borderRadius: 4, fontSize: 10 }}>Ctrl+C</kbd> a vložte <kbd style={{ background: 'var(--surface2)', border: '1px solid var(--border2)', padding: '1px 5px', borderRadius: 4, fontSize: 10 }}>Ctrl+V</kbd>.
+            </div>
+            <textarea
+              value={pasteText}
+              onChange={e => setPasteText(e.target.value)}
+              style={{ width: '100%', minHeight: 90, resize: 'vertical', fontFamily: 'Consolas,Monaco,monospace', fontSize: 12 }}
+              placeholder={"80145688\tL47\t23.06.2026 06:00:57\n80145688\tSO01\t23.06.2026 05:54:55\n..."}
+            />
+            <div style={{ display: 'flex', gap: 10, marginTop: 12, alignItems: 'center' }}>
+              <button className="btn" onClick={handleParse}>▶ Analyzovať</button>
+              <button className="btn-ghost" onClick={handleClear}>✕ Vymazať</button>
+              {parseStatus.msg && (
+                <span style={{
+                  fontSize: 12, fontWeight: 500,
+                  color: parseStatus.ok ? 'var(--accent)' : 'var(--accent3)',
+                  textShadow: parseStatus.ok ? '0 0 12px rgba(200,255,0,0.3)' : 'none',
+                }}>
+                  {parseStatus.msg}
+                </span>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* ── Tab: Manual entry ── */}
+        {inputTab === 'manual' && (
+          <>
+            <ManualEntryForm onAdd={record => onAddRecord(record)} />
+            {parseStatus.msg && (
+              <div style={{ marginTop: 10, fontSize: 12, fontWeight: 500, color: parseStatus.ok ? 'var(--accent)' : 'var(--accent3)' }}>
+                {parseStatus.msg}
+              </div>
+            )}
+            {allData.length > 0 && (
+              <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--border)', display: 'flex', gap: 10, alignItems: 'center' }}>
+                <span style={{ fontSize: 12, color: 'var(--text2)' }}>
+                  Celkovo v pamäti: <strong style={{ color: 'var(--accent)' }}>{allData.length.toLocaleString('sk')}</strong> záznamov
+                </span>
+                <button className="btn-ghost" style={{ marginLeft: 'auto' }} onClick={handleClear}>✕ Vymazať všetky</button>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── Tab: Excel file import ── */}
+        {inputTab === 'xlsx' && (
+          <>
+            <ExcelImport onImport={onImportRecords} existingCount={allData.length} />
+            {parseStatus.msg && allData.length > 0 && (
+              <div style={{ marginTop: 12, fontSize: 12, fontWeight: 500, color: parseStatus.ok ? 'var(--accent)' : 'var(--accent3)' }}>
+                {parseStatus.msg}
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* ── Data views ── */}
       {allData.length > 0 && (
         <>
-          {/* Section label */}
+          {/* Section label + Export button */}
           <div className="fade-in-up delay-1" style={{
             display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16,
           }}>
@@ -122,6 +183,14 @@ export default function Dashboard({ allData, stStats, flowData, parseStatus, onP
             }}>
               Live
             </div>
+            <button
+              className="btn-ghost"
+              style={{ marginLeft: 'auto', fontSize: 12 }}
+              onClick={() => exportToExcel(allData)}
+              title="Exportovať všetky záznamy do Excel súboru"
+            >
+              ⬇ Export Excel
+            </button>
           </div>
 
           {/* Filters */}
@@ -182,7 +251,6 @@ export default function Dashboard({ allData, stStats, flowData, parseStatus, onP
       {/* ── Empty state ── */}
       {!allData.length && (
         <div className="fade-in-up delay-1" style={{ textAlign: 'center', padding: '80px 20px 60px' }}>
-          {/* Accent glow circle */}
           <div style={{
             width: 90, height: 90, borderRadius: '50%',
             background: 'radial-gradient(circle, rgba(200,255,0,0.18) 0%, transparent 70%)',
@@ -209,12 +277,13 @@ export default function Dashboard({ allData, stStats, flowData, parseStatus, onP
           }}>
             Pripravený na analýzu
           </div>
-          <div style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 2, maxWidth: 420, margin: '0 auto' }}>
-            Označte všetky riadky v Exceli <kbd style={{ background: 'var(--surface2)', border: '1px solid var(--border2)', padding: '2px 6px', borderRadius: 4, fontSize: 11 }}>Ctrl+A</kbd>,
-            skopírujte <kbd style={{ background: 'var(--surface2)', border: '1px solid var(--border2)', padding: '2px 6px', borderRadius: 4, fontSize: 11 }}>Ctrl+C</kbd>{' '}
-            a vložte do poľa vyššie <kbd style={{ background: 'var(--surface2)', border: '1px solid var(--border2)', padding: '2px 6px', borderRadius: 4, fontSize: 11 }}>Ctrl+V</kbd>.
+          <div style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 2, maxWidth: 480, margin: '0 auto' }}>
+            Vyberte spôsob zadania dát vyššie:{' '}
+            <span style={{ color: 'var(--text)' }}>📋 vložte skopírovaný text</span>,{' '}
+            <span style={{ color: 'var(--text)' }}>✏️ zadajte záznamy ručne</span>, alebo{' '}
+            <span style={{ color: 'var(--text)' }}>📂 nahrajte Excel súbor (.xlsx)</span>.
             <br /><br />
-            <span style={{ color: 'var(--text3)', fontSize: 12 }}>Každý riadok = jedna KLT prepravka na stanici v konkrétnom čase.</span>
+            <span style={{ color: 'var(--text3)', fontSize: 12 }}>Každý záznam = jedna KLT prepravka na stanici v konkrétnom čase.</span>
           </div>
         </div>
       )}

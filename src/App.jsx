@@ -26,6 +26,17 @@ export default function App() {
 
   useEffect(() => { logEvent('session_start') }, [])
 
+  // Recalculate derived stats whenever allData changes
+  useEffect(() => {
+    if (allData.length === 0) {
+      setStStats([])
+      setFlowData({ pairs: {}, kltStations: {} })
+      return
+    }
+    setStStats(buildStationStats(allData))
+    setFlowData(buildFlowPairs(allData))
+  }, [allData])
+
   const handleTabChange = useCallback((newTab) => {
     logEvent('tab_changed', { tab: newTab })
     setTab(newTab)
@@ -38,18 +49,33 @@ export default function App() {
       return
     }
     setAllData(records)
-    setStStats(buildStationStats(records))
-    setFlowData(buildFlowPairs(records))
     setParseStatus({ msg: `✓ Načítaných ${records.length.toLocaleString('sk')} záznamov${skipped ? ` · preskočených: ${skipped}` : ''}`, ok: true })
     logEvent('data_loaded', { count: records.length })
   }, [])
 
   const handleClear = useCallback(() => {
     setAllData([])
-    setStStats([])
-    setFlowData({ pairs: {}, kltStations: {} })
     setParseStatus({ msg: '', ok: true })
     logEvent('data_cleared')
+  }, [])
+
+  const handleAddRecord = useCallback((record) => {
+    setAllData(prev => [record, ...prev])
+    setParseStatus({ msg: '✓ Záznam pridaný', ok: true })
+    logEvent('record_added_manual')
+  }, [])
+
+  const handleImportRecords = useCallback((records, mode) => {
+    if (mode === 'replace') {
+      setAllData(records)
+    } else {
+      setAllData(prev => [...records, ...prev])
+    }
+    setParseStatus({
+      msg: `✓ ${mode === 'replace' ? 'Importovaných' : 'Pridaných'} ${records.length.toLocaleString('sk')} záznamov`,
+      ok: true,
+    })
+    logEvent('data_imported', { count: records.length, mode })
   }, [])
 
   return (
@@ -71,6 +97,8 @@ export default function App() {
           parseStatus={parseStatus}
           onParse={handleParse}
           onClear={handleClear}
+          onAddRecord={handleAddRecord}
+          onImportRecords={handleImportRecords}
         />
       )}
       {tab === 'mz' && (
