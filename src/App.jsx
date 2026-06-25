@@ -7,6 +7,7 @@ import Dashboard from './components/Dashboard'
 import MZLayout from './components/MZLayout'
 import ExpLayout from './components/ExpLayout'
 import MainMenu from './components/MainMenu'
+import AISidebar from './components/AISidebar/AISidebar'
 
 const TABS = [
   { id: 'dashboard', label: '📊 Dashboard' },
@@ -21,6 +22,7 @@ export default function App() {
   const [flowData, setFlowData]     = useState({ pairs: {}, kltStations: {} })
   const [parseStatus, setParseStatus] = useState({ msg: '', ok: true })
   const [menuOpen, setMenuOpen]     = useState(false)
+  const [aiOpen, setAiOpen]         = useState(false)
 
   useEffect(() => { logEvent('session_start') }, [])
 
@@ -52,7 +54,12 @@ export default function App() {
 
   return (
     <>
-      <Header recordCount={allData.length} onOpenMenu={() => setMenuOpen(true)} />
+      <Header
+        recordCount={allData.length}
+        onOpenMenu={() => setMenuOpen(true)}
+        onToggleAI={() => setAiOpen(o => !o)}
+        aiOpen={aiOpen}
+      />
       <TabBar tabs={TABS} active={tab} onChange={handleTabChange} />
       {menuOpen && <MainMenu onClose={() => setMenuOpen(false)} />}
 
@@ -72,6 +79,8 @@ export default function App() {
       {tab === 'exp' && (
         <ExpLayout allData={allData} stStats={stStats} />
       )}
+
+      <AISidebar isOpen={aiOpen} allData={allData} stStats={stStats} />
     </>
   )
 }

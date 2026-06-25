@@ -1,4 +1,4 @@
-export default function Header({ recordCount, onOpenMenu }) {
+export default function Header({ recordCount, onOpenMenu, onToggleAI, aiOpen }) {
   const hasData = recordCount > 0
 
   return (
@@ -56,6 +56,41 @@ export default function Header({ recordCount, onOpenMenu }) {
       }}>
         {hasData ? `${recordCount.toLocaleString('sk')} záznamov` : 'Žiadne dáta'}
       </div>
+
+      {/* AI toggle button */}
+      <button
+        onClick={onToggleAI}
+        title="AI asistent"
+        style={{
+          background: aiOpen ? 'rgba(10,132,255,0.14)' : 'transparent',
+          border: `1px solid ${aiOpen ? 'rgba(10,132,255,0.5)' : 'var(--border2)'}`,
+          color: aiOpen ? '#0A84FF' : 'var(--text2)',
+          borderRadius: 10,
+          cursor: 'pointer',
+          padding: '7px 16px',
+          fontSize: 13, fontWeight: 500,
+          display: 'flex', alignItems: 'center', gap: 7,
+          transition: 'all var(--dur) var(--ease)',
+          fontFamily: 'var(--font-body)',
+          boxShadow: aiOpen ? '0 0 14px rgba(10,132,255,0.18)' : 'none',
+        }}
+        onMouseEnter={e => {
+          if (aiOpen) return
+          const el = e.currentTarget
+          el.style.borderColor = 'rgba(10,132,255,0.4)'
+          el.style.color = '#0A84FF'
+          el.style.background = 'rgba(10,132,255,0.08)'
+        }}
+        onMouseLeave={e => {
+          if (aiOpen) return
+          const el = e.currentTarget
+          el.style.borderColor = 'var(--border2)'
+          el.style.color = 'var(--text2)'
+          el.style.background = 'transparent'
+        }}
+      >
+        ✦ AI
+      </button>
 
       {/* Menu button */}
       <button
