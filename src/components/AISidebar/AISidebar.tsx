@@ -7,6 +7,7 @@ type StationStat = { station: string; count: number }
 
 interface AISidebarProps {
   isOpen: boolean
+  onClose: () => void
   allData: DataRecord[]
   stStats: StationStat[]
 }
@@ -18,8 +19,8 @@ function getTopBarcode(allData: DataRecord[]): string {
   return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? ''
 }
 
-export default function AISidebar({ isOpen, allData, stStats }: AISidebarProps) {
-  const { messages, loading, sendMessage, resetChat } = useAIChat(allData, stStats)
+export default function AISidebar({ isOpen, onClose, allData, stStats }: AISidebarProps) {
+  const { messages, loading, sendMessage, resetChat, retryLast } = useAIChat(allData, stStats)
   const [input, setInput] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -76,8 +77,7 @@ export default function AISidebar({ isOpen, allData, stStats }: AISidebarProps) 
   }
 
   function handleChip(text: string) {
-    if (loading) return
-    if (!hasData) return
+    if (loading || !hasData) return
     sendMessage(text)
   }
 
@@ -85,15 +85,25 @@ export default function AISidebar({ isOpen, allData, stStats }: AISidebarProps) 
 
   return (
     <div className={`ai-sidebar${isOpen ? ' ai-sidebar--open' : ''}`}>
+
       {/* Header */}
       <div className="ai-sidebar__header">
         <span className="ai-sidebar__icon">✦</span>
         <span className="ai-sidebar__title">AI asistent</span>
         <span className="ai-sidebar__dot" title="Online" />
+        <button
+          className="ai-sidebar__close"
+          onClick={onClose}
+          title="Zavrieť"
+          aria-label="Zavrieť AI asistenta"
+        >
+          ✕
+        </button>
       </div>
 
       {/* Messages area */}
       <div className="ai-sidebar__messages">
+
         {/* Static greeting bubble */}
         <div className="ai-sidebar__msg">
           <div className="ai-bubble">{greeting}</div>
@@ -105,8 +115,18 @@ export default function AISidebar({ isOpen, allData, stStats }: AISidebarProps) 
             key={i}
             className={`ai-sidebar__msg${msg.role === 'user' ? ' ai-sidebar__msg--user' : ''}`}
           >
-            <div className={msg.role === 'user' ? 'user-bubble' : 'ai-bubble'}>
+            <div className={msg.role === 'user' ? 'user-bubble' : `ai-bubble${msg.isError ? ' ai-bubble--error' : ''}`}>
               {msg.content}
+              {msg.isError && (
+                <button
+                  className="ai-retry-btn"
+                  onClick={retryLast}
+                  disabled={loading}
+                  title="Skúsiť znova"
+                >
+                  ↺ Skúsiť znova
+                </button>
+              )}
             </div>
           </div>
         ))}

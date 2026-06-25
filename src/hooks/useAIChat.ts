@@ -3,6 +3,7 @@ import { useState, useCallback, useRef } from 'react'
 export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
+  isError?: boolean
 }
 
 type DataRecord = { barcode: string; station: string; datetime: Date }
@@ -58,7 +59,7 @@ export function useAIChat(allData: DataRecord[], stStats: StationStat[]) {
 
     const apiKey = (import.meta as any).env.VITE_OPENAI_API_KEY
     if (!apiKey) {
-      const err: ChatMessage = { role: 'assistant', content: 'API kľúč nie je nastavený v .env súbore.' }
+      const err: ChatMessage = { role: 'assistant', content: 'API kľúč nie je nastavený v .env súbore.', isError: true }
       historyRef.current = [...newHistory, err]
       setMessages([...historyRef.current])
       setLoading(false)
@@ -110,7 +111,7 @@ export function useAIChat(allData: DataRecord[], stStats: StationStat[]) {
             ? 'Sieť nedostupná. Skontrolujte pripojenie.'
             : 'Chyba pripojenia. Skúste znova.'
       console.error('[AI] sendMessage error:', rawErr)
-      const err: ChatMessage = { role: 'assistant', content: display }
+      const err: ChatMessage = { role: 'assistant', content: display, isError: true }
       historyRef.current = [...newHistory, err]
       setMessages([...historyRef.current])
     } finally {
@@ -123,5 +124,16 @@ export function useAIChat(allData: DataRecord[], stStats: StationStat[]) {
     setMessages([])
   }, [])
 
-  return { messages, loading, sendMessage, resetChat }
+  const retryLast = useCallback(() => {
+    const msgs = historyRef.current
+    const last = msgs[msgs.length - 1]
+    const prev = msgs[msgs.length - 2]
+    if (!last?.isError || prev?.role !== 'user') return
+    const trimmed = msgs.slice(0, msgs.length - 2)
+    historyRef.current = trimmed
+    setMessages([...trimmed])
+    sendMessage(prev.content)
+  }, [sendMessage])
+
+  return { messages, loading, sendMessage, resetChat, retryLast }
 }

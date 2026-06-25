@@ -108,7 +108,7 @@ export default function App() {
         <ExpLayout allData={allData} stStats={stStats} />
       )}
 
-      <AISidebar isOpen={aiOpen} allData={allData} stStats={stStats} />
+      <AISidebar isOpen={aiOpen} onClose={() => setAiOpen(false)} allData={allData} stStats={stStats} />
     </>
   )
 }
