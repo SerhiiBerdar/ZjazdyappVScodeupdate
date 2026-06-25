@@ -30,8 +30,8 @@ function buildDataSummary(allData: DataRecord[], stStats: StationStat[]): string
   const times = allData
     .map(d => d.datetime?.getTime())
     .filter((t): t is number => typeof t === 'number' && !isNaN(t))
-  const minDate = new Date(Math.min(...times))
-  const maxDate = new Date(Math.max(...times))
+  const minDate = new Date(times.reduce((a, b) => a < b ? a : b))
+  const maxDate = new Date(times.reduce((a, b) => a > b ? a : b))
   const dateRange = `${minDate.toLocaleDateString('sk')} – ${maxDate.toLocaleDateString('sk')}`
 
   const barcodeCount: Record<string, number> = {}
