@@ -1,43 +1,58 @@
 export default function Header({ recordCount, onOpenMenu, onToggleAI, aiOpen }) {
   const hasData = recordCount > 0
 
+  const iconBtn = (active) => ({
+    background: active ? 'var(--accent-subtle)' : 'transparent',
+    border: `1px solid ${active ? 'rgba(10,132,255,0.4)' : 'var(--border)'}`,
+    color: active ? 'var(--accent)' : 'var(--text-secondary)',
+    borderRadius: 'var(--radius-md)',
+    width: 40, height: 40,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    cursor: 'pointer',
+    fontSize: 15, fontWeight: 500,
+    fontFamily: 'var(--font-body)',
+    flexShrink: 0,
+    transition: `background var(--duration-fast) var(--ease-apple),
+                 border-color var(--duration-fast) var(--ease-apple),
+                 color var(--duration-fast) var(--ease-apple)`,
+  })
+
   return (
     <header style={{
-      background: 'rgba(10,10,15,0.82)',
-      backdropFilter: 'blur(24px)',
-      WebkitBackdropFilter: 'blur(24px)',
+      background: 'var(--bg-glass)',
+      backdropFilter: 'blur(20px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(20px) saturate(180%)',
       borderBottom: '1px solid var(--border)',
-      padding: '0 24px',
-      height: 62,
-      display: 'flex', alignItems: 'center', gap: 14,
+      padding: '0 20px',
+      height: 52,
+      display: 'flex', alignItems: 'center', gap: 12,
       position: 'sticky', top: 0, zIndex: 100,
     }}>
 
-      {/* Logo */}
+      {/* Logo mark */}
       <div style={{
-        width: 36, height: 36, flexShrink: 0,
+        width: 28, height: 28, flexShrink: 0,
         background: 'var(--accent)',
-        borderRadius: 10,
+        borderRadius: 8,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 18,
-        boxShadow: '0 0 22px var(--accent-glow)',
-      }}>🚉</div>
+        fontSize: 14,
+      }}>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <rect x="2" y="6" width="12" height="4" rx="1.5" fill="white" opacity="0.9"/>
+          <rect x="4" y="2" width="2" height="12" rx="1" fill="white"/>
+          <rect x="10" y="2" width="2" height="12" rx="1" fill="white"/>
+        </svg>
+      </div>
 
       {/* Title */}
-      <div>
-        <div style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 21, fontWeight: 800,
-          letterSpacing: '0.06em',
-          textTransform: 'uppercase',
-          color: 'var(--text)',
-          lineHeight: 1.1,
-        }}>
-          Analýza Vytaženosti Zjazdov
-        </div>
-        <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 1, letterSpacing: '0.02em' }}>
-          Pohyb KLT prepraviek cez stanice v čase
-        </div>
+      <div style={{
+        fontFamily: 'var(--font-display)',
+        fontSize: 17, fontWeight: 700,
+        color: 'var(--text-primary)',
+        letterSpacing: '-0.2px',
+        whiteSpace: 'nowrap',
+      }}>
+        ZjazdyApp
       </div>
 
       {/* Spacer */}
@@ -45,85 +60,60 @@ export default function Header({ recordCount, onOpenMenu, onToggleAI, aiOpen }) 
 
       {/* Record count badge */}
       <div style={{
-        background: hasData ? 'var(--accent-dim)' : 'rgba(255,255,255,0.04)',
-        border: `1px solid ${hasData ? 'rgba(200,255,0,0.3)' : 'var(--border)'}`,
-        color: hasData ? 'var(--accent)' : 'var(--text2)',
-        fontSize: 11, fontWeight: 600,
-        padding: '5px 14px', borderRadius: 20,
-        transition: 'all var(--dur) var(--ease)',
-        boxShadow: hasData ? '0 0 14px rgba(200,255,0,0.18)' : 'none',
+        background: hasData ? 'var(--accent-subtle)' : 'rgba(255,255,255,0.05)',
+        border: `1px solid ${hasData ? 'rgba(10,132,255,0.3)' : 'var(--border)'}`,
+        color: hasData ? 'var(--accent)' : 'var(--text-tertiary)',
+        fontSize: 12, fontWeight: 500,
+        padding: '4px 12px', borderRadius: 20,
         whiteSpace: 'nowrap',
+        transition: 'all var(--duration-base) var(--ease-apple)',
       }}>
         {hasData ? `${recordCount.toLocaleString('sk')} záznamov` : 'Žiadne dáta'}
       </div>
 
-      {/* AI toggle button */}
+      {/* AI toggle */}
       <button
         onClick={onToggleAI}
         title="AI asistent"
-        style={{
-          background: aiOpen ? 'rgba(10,132,255,0.14)' : 'transparent',
-          border: `1px solid ${aiOpen ? 'rgba(10,132,255,0.5)' : 'var(--border2)'}`,
-          color: aiOpen ? '#0A84FF' : 'var(--text2)',
-          borderRadius: 10,
-          cursor: 'pointer',
-          padding: '7px 16px',
-          fontSize: 13, fontWeight: 500,
-          display: 'flex', alignItems: 'center', gap: 7,
-          transition: 'all var(--dur) var(--ease)',
-          fontFamily: 'var(--font-body)',
-          boxShadow: aiOpen ? '0 0 14px rgba(10,132,255,0.18)' : 'none',
-        }}
+        style={iconBtn(aiOpen)}
         onMouseEnter={e => {
-          if (aiOpen) return
-          const el = e.currentTarget
-          el.style.borderColor = 'rgba(10,132,255,0.4)'
-          el.style.color = '#0A84FF'
-          el.style.background = 'rgba(10,132,255,0.08)'
+          if (!aiOpen) {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+            e.currentTarget.style.color = 'var(--text-primary)'
+          }
         }}
         onMouseLeave={e => {
-          if (aiOpen) return
-          const el = e.currentTarget
-          el.style.borderColor = 'var(--border2)'
-          el.style.color = 'var(--text2)'
-          el.style.background = 'transparent'
+          if (!aiOpen) {
+            e.currentTarget.style.background = 'transparent'
+            e.currentTarget.style.color = 'var(--text-secondary)'
+          }
         }}
       >
-        ✦ AI
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5"/>
+          <path d="M5.5 9.5C5.5 9.5 6.5 11 8 11C9.5 11 10.5 9.5 10.5 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          <circle cx="6" cy="7" r="1" fill="currentColor"/>
+          <circle cx="10" cy="7" r="1" fill="currentColor"/>
+        </svg>
       </button>
 
       {/* Menu button */}
       <button
         onClick={onOpenMenu}
         title="Hlavné menu"
-        style={{
-          background: 'transparent',
-          border: '1px solid var(--border2)',
-          color: 'var(--text2)',
-          borderRadius: 10,
-          cursor: 'pointer',
-          padding: '7px 16px',
-          fontSize: 13, fontWeight: 500,
-          display: 'flex', alignItems: 'center', gap: 7,
-          transition: 'all var(--dur) var(--ease)',
-          fontFamily: 'var(--font-body)',
-        }}
+        style={iconBtn(false)}
         onMouseEnter={e => {
-          const el = e.currentTarget
-          el.style.borderColor = 'rgba(200,255,0,0.45)'
-          el.style.color = 'var(--accent)'
-          el.style.background = 'var(--accent-dim)'
-          el.style.boxShadow = '0 0 14px rgba(200,255,0,0.15)'
+          e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+          e.currentTarget.style.color = 'var(--text-primary)'
         }}
         onMouseLeave={e => {
-          const el = e.currentTarget
-          el.style.borderColor = 'var(--border2)'
-          el.style.color = 'var(--text2)'
-          el.style.background = 'transparent'
-          el.style.boxShadow = 'none'
+          e.currentTarget.style.background = 'transparent'
+          e.currentTarget.style.color = 'var(--text-secondary)'
         }}
       >
-        ☰ Menu
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
       </button>
     </header>
   )

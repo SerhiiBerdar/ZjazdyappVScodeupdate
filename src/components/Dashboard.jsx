@@ -14,7 +14,7 @@ import { chronoHours } from '../utils/parser'
 import { exportToExcel } from '../utils/excelExport'
 
 export default function Dashboard({ allData, stStats, flowData, parseStatus, onParse, onClear, onAddRecord, onImportRecords }) {
-  const [inputTab, setInputTab]     = useState('paste') // 'paste' | 'manual' | 'xlsx'
+  const [inputTab, setInputTab]     = useState('paste')
   const [pasteText, setPasteText]   = useState('')
   const [filters, setFilters]       = useState({ barcode:'', station:'', hour:'' })
   const [timelineRes, setTimelineRes]               = useState(15)
@@ -53,28 +53,33 @@ export default function Dashboard({ allData, stStats, flowData, parseStatus, onP
   const handleClear = () => { onClear(); setPasteText(''); setFilters({ barcode:'', station:'', hour:'' }) }
 
   const INPUT_TABS = [
-    { id: 'paste',  label: '📋 Vložiť text' },
-    { id: 'manual', label: '✏️ Zadať ručne' },
-    { id: 'xlsx',   label: '📂 Import .xlsx' },
+    { id: 'paste',  label: 'Vložiť text' },
+    { id: 'manual', label: 'Zadať ručne' },
+    { id: 'xlsx',   label: 'Import .xlsx' },
   ]
 
   return (
-    <main style={{ padding: 20, maxWidth: 1500, margin: '0 auto' }}>
+    <main style={{ padding: '20px 24px', maxWidth: 1440, margin: '0 auto' }}>
 
       {/* ── Data input ── */}
-      <div className="card fade-in-up" style={{ padding: 22, marginBottom: 20 }}>
+      <div className="card fade-in-up" style={{ padding: '20px 22px', marginBottom: 16 }}>
 
-        {/* Header row with status dot, title, and tab switcher */}
+        {/* Header row */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-          <span style={{
-            width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-            background: allData.length > 0 ? 'var(--accent)' : 'var(--text3)',
-            boxShadow: allData.length > 0 ? '0 0 8px var(--accent-glow)' : 'none',
-            display: 'inline-block',
-          }} />
-          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '.12em' }}>
-            Načítať dáta
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{
+              width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+              background: allData.length > 0 ? 'var(--success)' : 'var(--text-tertiary)',
+              boxShadow: allData.length > 0 ? '0 0 6px rgba(48,209,88,0.5)' : 'none',
+            }} />
+            <span style={{
+              fontSize: 11, fontWeight: 600,
+              color: 'var(--text-secondary)',
+              textTransform: 'uppercase', letterSpacing: '0.8px',
+            }}>
+              Načítať dáta
+            </span>
+          </div>
 
           {/* Tab switcher */}
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -93,29 +98,68 @@ export default function Dashboard({ allData, stStats, flowData, parseStatus, onP
         {/* ── Tab: Paste text ── */}
         {inputTab === 'paste' && (
           <>
-            <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 12, lineHeight: 1.7 }}>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12, lineHeight: 1.7 }}>
               Označte v Exceli riadky (3 stĺpce:{' '}
-              <code style={{ background: 'rgba(200,255,0,0.08)', border: '1px solid rgba(200,255,0,0.2)', padding: '1px 6px', borderRadius: 4, color: 'var(--accent)', fontSize: 10 }}>Čiarový kód</code>
+              <code style={{
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid var(--border)',
+                padding: '1px 6px', borderRadius: 4,
+                color: 'var(--text-primary)', fontSize: 12,
+                fontFamily: 'var(--font-mono)',
+              }}>Čiarový kód</code>
               {' · '}
-              <code style={{ background: 'rgba(200,255,0,0.08)', border: '1px solid rgba(200,255,0,0.2)', padding: '1px 6px', borderRadius: 4, color: 'var(--accent)', fontSize: 10 }}>Stanica</code>
+              <code style={{
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid var(--border)',
+                padding: '1px 6px', borderRadius: 4,
+                color: 'var(--text-primary)', fontSize: 12,
+                fontFamily: 'var(--font-mono)',
+              }}>Stanica</code>
               {' · '}
-              <code style={{ background: 'rgba(200,255,0,0.08)', border: '1px solid rgba(200,255,0,0.2)', padding: '1px 6px', borderRadius: 4, color: 'var(--accent)', fontSize: 10 }}>Dátum/čas</code>
-              ), skopírujte <kbd style={{ background: 'var(--surface2)', border: '1px solid var(--border2)', padding: '1px 5px', borderRadius: 4, fontSize: 10 }}>Ctrl+C</kbd> a vložte <kbd style={{ background: 'var(--surface2)', border: '1px solid var(--border2)', padding: '1px 5px', borderRadius: 4, fontSize: 10 }}>Ctrl+V</kbd>.
+              <code style={{
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid var(--border)',
+                padding: '1px 6px', borderRadius: 4,
+                color: 'var(--text-primary)', fontSize: 12,
+                fontFamily: 'var(--font-mono)',
+              }}>Dátum/čas</code>
+              ), skopírujte{' '}
+              <kbd style={{
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border-strong)',
+                padding: '1px 6px', borderRadius: 4, fontSize: 12,
+                fontFamily: 'var(--font-mono)',
+              }}>Ctrl+C</kbd>
+              {' '}a vložte{' '}
+              <kbd style={{
+                background: 'var(--bg-elevated)',
+                border: '1px solid var(--border-strong)',
+                padding: '1px 6px', borderRadius: 4, fontSize: 12,
+                fontFamily: 'var(--font-mono)',
+              }}>Ctrl+V</kbd>.
             </div>
             <textarea
               value={pasteText}
               onChange={e => setPasteText(e.target.value)}
-              style={{ width: '100%', minHeight: 90, resize: 'vertical', fontFamily: 'Consolas,Monaco,monospace', fontSize: 12 }}
+              style={{
+                width: '100%', minHeight: 88, resize: 'vertical',
+                fontFamily: 'var(--font-mono)', fontSize: 13,
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--text-primary)',
+                padding: '10px 14px',
+                outline: 'none',
+              }}
               placeholder={"80145688\tL47\t23.06.2026 06:00:57\n80145688\tSO01\t23.06.2026 05:54:55\n..."}
             />
             <div style={{ display: 'flex', gap: 10, marginTop: 12, alignItems: 'center' }}>
-              <button className="btn" onClick={handleParse}>▶ Analyzovať</button>
-              <button className="btn-ghost" onClick={handleClear}>✕ Vymazať</button>
+              <button className="btn" onClick={handleParse}>Analyzovať</button>
+              <button className="btn-ghost" onClick={handleClear}>Vymazať</button>
               {parseStatus.msg && (
                 <span style={{
-                  fontSize: 12, fontWeight: 500,
-                  color: parseStatus.ok ? 'var(--accent)' : 'var(--accent3)',
-                  textShadow: parseStatus.ok ? '0 0 12px rgba(200,255,0,0.3)' : 'none',
+                  fontSize: 13, fontWeight: 500,
+                  color: parseStatus.ok ? 'var(--success)' : 'var(--danger)',
                 }}>
                   {parseStatus.msg}
                 </span>
@@ -129,16 +173,29 @@ export default function Dashboard({ allData, stStats, flowData, parseStatus, onP
           <>
             <ManualEntryForm onAdd={record => onAddRecord(record)} />
             {parseStatus.msg && (
-              <div style={{ marginTop: 10, fontSize: 12, fontWeight: 500, color: parseStatus.ok ? 'var(--accent)' : 'var(--accent3)' }}>
+              <div style={{
+                marginTop: 10, fontSize: 13, fontWeight: 500,
+                color: parseStatus.ok ? 'var(--success)' : 'var(--danger)',
+              }}>
                 {parseStatus.msg}
               </div>
             )}
             {allData.length > 0 && (
-              <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--border)', display: 'flex', gap: 10, alignItems: 'center' }}>
-                <span style={{ fontSize: 12, color: 'var(--text2)' }}>
-                  Celkovo v pamäti: <strong style={{ color: 'var(--accent)' }}>{allData.length.toLocaleString('sk')}</strong> záznamov
+              <div style={{
+                marginTop: 14, paddingTop: 14,
+                borderTop: '1px solid var(--border)',
+                display: 'flex', gap: 10, alignItems: 'center',
+              }}>
+                <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                  V pamäti:{' '}
+                  <strong style={{ color: 'var(--text-primary)' }}>
+                    {allData.length.toLocaleString('sk')}
+                  </strong>{' '}
+                  záznamov
                 </span>
-                <button className="btn-ghost" style={{ marginLeft: 'auto' }} onClick={handleClear}>✕ Vymazať všetky</button>
+                <button className="btn-ghost" style={{ marginLeft: 'auto' }} onClick={handleClear}>
+                  Vymazať všetky
+                </button>
               </div>
             )}
           </>
@@ -149,7 +206,10 @@ export default function Dashboard({ allData, stStats, flowData, parseStatus, onP
           <>
             <ExcelImport onImport={onImportRecords} existingCount={allData.length} />
             {parseStatus.msg && allData.length > 0 && (
-              <div style={{ marginTop: 12, fontSize: 12, fontWeight: 500, color: parseStatus.ok ? 'var(--accent)' : 'var(--accent3)' }}>
+              <div style={{
+                marginTop: 12, fontSize: 13, fontWeight: 500,
+                color: parseStatus.ok ? 'var(--success)' : 'var(--danger)',
+              }}>
                 {parseStatus.msg}
               </div>
             )}
@@ -160,36 +220,36 @@ export default function Dashboard({ allData, stStats, flowData, parseStatus, onP
       {/* ── Data views ── */}
       {allData.length > 0 && (
         <>
-          {/* Section label + Export button */}
+          {/* Section label */}
           <div className="fade-in-up delay-1" style={{
             display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16,
           }}>
-            <div style={{
+            <h2 style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 28, fontWeight: 800,
-              letterSpacing: '0.06em', textTransform: 'uppercase',
-              color: 'var(--text)',
+              fontSize: 22, fontWeight: 600,
+              color: 'var(--text-primary)',
+              letterSpacing: '-0.3px',
+              margin: 0,
             }}>
-              Live Analytics
-            </div>
+              Analytika
+            </h2>
             <div style={{
-              fontSize: 10, fontWeight: 700,
-              background: 'var(--accent-dim)',
-              color: 'var(--accent)',
-              border: '1px solid rgba(200,255,0,0.3)',
+              background: 'rgba(48,209,88,0.12)',
+              color: 'var(--success)',
+              border: '1px solid rgba(48,209,88,0.25)',
+              fontSize: 11, fontWeight: 600,
               padding: '3px 10px', borderRadius: 20,
-              letterSpacing: '.1em', textTransform: 'uppercase',
-              boxShadow: '0 0 10px rgba(200,255,0,0.2)',
+              letterSpacing: '0.5px', textTransform: 'uppercase',
             }}>
               Live
             </div>
             <button
               className="btn-ghost"
-              style={{ marginLeft: 'auto', fontSize: 12 }}
+              style={{ marginLeft: 'auto', fontSize: 13 }}
               onClick={() => exportToExcel(allData)}
               title="Exportovať všetky záznamy do Excel súboru"
             >
-              ⬇ Export Excel
+              Export Excel
             </button>
           </div>
 
@@ -203,23 +263,34 @@ export default function Dashboard({ allData, stStats, flowData, parseStatus, onP
           </div>
 
           {/* Stat cards */}
-          <div className="fade-in-up delay-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 20 }}>
-            <StatCard label="Zobrazené záznamy" value={total.toLocaleString('sk')}
-              sub={total < allData.length ? `z celkových ${allData.length.toLocaleString('sk')}` : 'priechodov celkovo'} accent={0} />
-            <StatCard label="KLT prepravky"   value={uniqueKlt.toLocaleString('sk')} sub="unikátnych KLT" accent={1} />
-            <StatCard label="Aktívne stanice" value={uniqueSt} sub="unikátnych staníc" accent={2} />
-            <StatCard label="Vrcholová hodina" value={peak ? `${peak[0]}:00` : '—'}
-              sub={peak ? `${peak[1].toLocaleString('sk')} priechodov` : ''} accent={3} />
+          <div className="fade-in-up delay-2" style={{
+            display: 'grid', gridTemplateColumns: 'repeat(4,1fr)',
+            gap: 12, marginBottom: 16,
+          }}>
+            <StatCard
+              label="Zobrazené záznamy" value={total.toLocaleString('sk')}
+              sub={total < allData.length ? `z celkových ${allData.length.toLocaleString('sk')}` : 'priechodov celkovo'}
+              accent={0}
+            />
+            <StatCard label="KLT prepravky"   value={uniqueKlt.toLocaleString('sk')} sub="unikátnych KLT"     accent={1} />
+            <StatCard label="Aktívne stanice" value={uniqueSt}                        sub="unikátnych staníc"  accent={2} />
+            <StatCard
+              label="Vrcholová hodina" value={peak ? `${peak[0]}:00` : '—'}
+              sub={peak ? `${peak[1].toLocaleString('sk')} priechodov` : ''}
+              accent={3}
+            />
           </div>
 
-          {/* Timeline + Top stations */}
-          <div className="fade-in-up delay-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
-            <div className="card" style={{ padding: 20, gridColumn: '1/-1' }}>
-              <TimelineChart
-                data={filtered} resolution={timelineRes} onResChange={setTimelineRes}
-                showDuplicates={timelineDuplicates} onToggleDuplicates={setTimelineDuplicates}
-              />
-            </div>
+          {/* Timeline */}
+          <div className="card fade-in-up delay-3" style={{ padding: 20, marginBottom: 12 }}>
+            <TimelineChart
+              data={filtered} resolution={timelineRes} onResChange={setTimelineRes}
+              showDuplicates={timelineDuplicates} onToggleDuplicates={setTimelineDuplicates}
+            />
+          </div>
+
+          {/* Top stations + Detail */}
+          <div className="fade-in-up delay-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
             <div className="card" style={{ padding: 20 }}>
               <TopStationsChart stStats={filteredStats} onSelect={st => { setSelectedStation(st); setFilters(f => ({ ...f, station: st })) }} />
             </div>
@@ -229,15 +300,15 @@ export default function Dashboard({ allData, stStats, flowData, parseStatus, onP
             </div>
           </div>
 
-          <div className="card fade-in-up delay-4" style={{ padding: 20, marginBottom: 20 }}>
+          <div className="card fade-in-up delay-4" style={{ padding: 20, marginBottom: 12 }}>
             <HeatmapSvg stStats={filteredStats} allData={filtered} topN={heatN} onTopNChange={setHeatN} />
           </div>
 
-          <div className="card fade-in-up delay-4" style={{ padding: 20, marginBottom: 20 }}>
+          <div className="card fade-in-up delay-4" style={{ padding: 20, marginBottom: 12 }}>
             <FlowChart flowData={flowData} stations={allStations} />
           </div>
 
-          <div className="card fade-in-up delay-5" style={{ padding: 20, marginBottom: 20 }}>
+          <div className="card fade-in-up delay-5" style={{ padding: 20, marginBottom: 12 }}>
             <KltTrace allData={allData} search={kltSearch} onSearchChange={setKltSearch} />
           </div>
 
@@ -252,39 +323,43 @@ export default function Dashboard({ allData, stStats, flowData, parseStatus, onP
       {!allData.length && (
         <div className="fade-in-up delay-1" style={{ textAlign: 'center', padding: '80px 20px 60px' }}>
           <div style={{
-            width: 90, height: 90, borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(200,255,0,0.18) 0%, transparent 70%)',
-            border: '1px solid rgba(200,255,0,0.2)',
+            width: 80, height: 80, borderRadius: 24,
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--border)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 42, margin: '0 auto 28px',
-            boxShadow: '0 0 40px rgba(200,255,0,0.12)',
-          }}>📂</div>
+            margin: '0 auto 28px',
+          }}>
+            <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+              <path d="M6 28V14l6-6h18l6 6v14a2 2 0 01-2 2H8a2 2 0 01-2-2z" stroke="var(--text-tertiary)" strokeWidth="2"/>
+              <path d="M13 30V21h10v9" stroke="var(--text-tertiary)" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M12 8v-2" stroke="var(--text-tertiary)" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </div>
 
-          <div style={{
+          <h1 style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 42, fontWeight: 800,
-            letterSpacing: '0.06em', textTransform: 'uppercase',
-            color: 'var(--text)', marginBottom: 8, lineHeight: 1.1,
+            fontSize: 34, fontWeight: 700,
+            color: 'var(--text-primary)',
+            marginBottom: 8, letterSpacing: '-0.5px',
           }}>
             Žiadne dáta
-          </div>
-          <div style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 20, fontWeight: 600,
-            letterSpacing: '0.08em', textTransform: 'uppercase',
-            color: 'var(--accent)', marginBottom: 24,
-            textShadow: '0 0 20px rgba(200,255,0,0.4)',
+          </h1>
+          <p style={{
+            fontSize: 17, fontWeight: 500,
+            color: 'var(--accent)',
+            marginBottom: 24,
           }}>
             Pripravený na analýzu
-          </div>
-          <div style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 2, maxWidth: 480, margin: '0 auto' }}>
-            Vyberte spôsob zadania dát vyššie:{' '}
-            <span style={{ color: 'var(--text)' }}>📋 vložte skopírovaný text</span>,{' '}
-            <span style={{ color: 'var(--text)' }}>✏️ zadajte záznamy ručne</span>, alebo{' '}
-            <span style={{ color: 'var(--text)' }}>📂 nahrajte Excel súbor (.xlsx)</span>.
-            <br /><br />
-            <span style={{ color: 'var(--text3)', fontSize: 12 }}>Každý záznam = jedna KLT prepravka na stanici v konkrétnom čase.</span>
-          </div>
+          </p>
+          <p style={{
+            fontSize: 14, color: 'var(--text-secondary)',
+            lineHeight: 1.8, maxWidth: 440, margin: '0 auto',
+          }}>
+            Vyberte spôsob zadania dát vyššie —{' '}
+            <span style={{ color: 'var(--text-primary)' }}>vložte skopírovaný text</span>,{' '}
+            <span style={{ color: 'var(--text-primary)' }}>zadajte záznamy ručne</span>, alebo{' '}
+            <span style={{ color: 'var(--text-primary)' }}>nahrajte Excel súbor (.xlsx)</span>.
+          </p>
         </div>
       )}
     </main>

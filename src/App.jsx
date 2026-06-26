@@ -10,9 +10,9 @@ import MainMenu from './components/MainMenu'
 import AISidebar from './components/AISidebar/AISidebar'
 
 const TABS = [
-  { id: 'dashboard', label: '📊 Dashboard' },
-  { id: 'mz',        label: '🏭 Manuálna zóna' },
-  { id: 'exp',       label: '📦 Expedičná časť' },
+  { id: 'dashboard', label: 'Dashboard' },
+  { id: 'mz',        label: 'Manuálna zóna' },
+  { id: 'exp',       label: 'Expedičná časť' },
 ]
 
 export default function App() {

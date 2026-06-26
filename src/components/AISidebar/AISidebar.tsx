@@ -88,7 +88,14 @@ export default function AISidebar({ isOpen, onClose, allData, stStats }: AISideb
 
       {/* Header */}
       <div className="ai-sidebar__header">
-        <span className="ai-sidebar__icon">✦</span>
+        <span className="ai-sidebar__icon" aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <circle cx="6" cy="6" r="4" stroke="currentColor" strokeWidth="1.5"/>
+            <path d="M4 7C4 7 4.8 8.5 6 8.5C7.2 8.5 8 7 8 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            <circle cx="4.5" cy="5" r="0.75" fill="currentColor"/>
+            <circle cx="7.5" cy="5" r="0.75" fill="currentColor"/>
+          </svg>
+        </span>
         <span className="ai-sidebar__title">AI asistent</span>
         <span className="ai-sidebar__dot" title="Online" />
         <button
@@ -97,7 +104,9 @@ export default function AISidebar({ isOpen, onClose, allData, stStats }: AISideb
           title="Zavrieť"
           aria-label="Zavrieť AI asistenta"
         >
-          ✕
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <path d="M1 1l8 8M9 1L1 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
         </button>
       </div>
 
@@ -180,7 +189,9 @@ export default function AISidebar({ isOpen, onClose, allData, stStats }: AISideb
           title="Odoslať"
           aria-label="Odoslať"
         >
-          ↑
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 11V3M3 7l4-4 4 4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </button>
       </div>
     </div>
