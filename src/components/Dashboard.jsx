@@ -10,6 +10,7 @@ import StationsTable from './StationsTable'
 import FilterBar from './FilterBar'
 import ManualEntryForm from './ManualEntryForm'
 import ExcelImport from './ExcelImport'
+import CidloDetailPanel from './CidloDetailPanel'
 import { chronoHours } from '../utils/parser'
 import { exportToExcel } from '../utils/excelExport'
 
@@ -23,6 +24,7 @@ export default function Dashboard({ allData, stStats, flowData, parseStatus, onP
   const [selectedStation, setSelectedStation] = useState('')
   const [heatN, setHeatN]           = useState(25)
   const [kltSearch, setKltSearch]   = useState('')
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
 
   const filtered = allData.filter(d => {
     if (filters.barcode && !d.barcode.includes(filters.barcode)) return false
@@ -292,7 +294,7 @@ export default function Dashboard({ allData, stStats, flowData, parseStatus, onP
           {/* Top stations + Detail */}
           <div className="fade-in-up delay-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
             <div className="card" style={{ padding: 20 }}>
-              <TopStationsChart stStats={filteredStats} onSelect={st => { setSelectedStation(st); setFilters(f => ({ ...f, station: st })) }} />
+              <TopStationsChart stStats={filteredStats} onSelect={st => { setSelectedStation(st); setFilters(f => ({ ...f, station: st })); setIsDetailOpen(true) }} />
             </div>
             <div className="card" style={{ padding: 20 }}>
               <StationDetailChart allData={filtered} stStats={filteredStats} selected={selectedStation}
@@ -318,6 +320,13 @@ export default function Dashboard({ allData, stStats, flowData, parseStatus, onP
           </div>
         </>
       )}
+
+      <CidloDetailPanel
+        station={selectedStation}
+        allData={allData}
+        isOpen={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
+      />
 
       {/* ── Empty state ── */}
       {!allData.length && (

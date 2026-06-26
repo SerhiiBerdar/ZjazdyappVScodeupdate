@@ -6,6 +6,8 @@ import TabBar from './components/TabBar'
 import Dashboard from './components/Dashboard'
 import MZLayout from './components/MZLayout'
 import ExpLayout from './components/ExpLayout'
+import OtoceneBaliky from './components/OtoceneBaliky'
+import NedorazeneKLT from './components/NedorazeneKLT'
 import MainMenu from './components/MainMenu'
 import AISidebar from './components/AISidebar/AISidebar'
 
@@ -13,6 +15,8 @@ const TABS = [
   { id: 'dashboard', label: 'Dashboard' },
   { id: 'mz',        label: 'Manuálna zóna' },
   { id: 'exp',       label: 'Expedičná časť' },
+  { id: 'otocene',   label: '⚠️ Otočené balíky' },
+  { id: 'nedoraz',   label: '🚫 Nedorazené KLT' },
 ]
 
 export default function App() {
@@ -106,6 +110,12 @@ export default function App() {
       )}
       {tab === 'exp' && (
         <ExpLayout allData={allData} stStats={stStats} />
+      )}
+      {tab === 'otocene' && (
+        <OtoceneBaliky allData={allData} />
+      )}
+      {tab === 'nedoraz' && (
+        <NedorazeneKLT allData={allData} />
       )}
 
       <AISidebar isOpen={aiOpen} onClose={() => setAiOpen(false)} allData={allData} stStats={stStats} />
