@@ -13,9 +13,10 @@ const CHART_DEFAULTS = {
   tipBorder:'rgba(255,255,255,0.08)',
 }
 
-export default function TimelineChart({ data, resolution, onResChange, showDuplicates, onToggleDuplicates }) {
-  const canvasRef = useRef(null)
-  const chartRef  = useRef(null)
+export default function TimelineChart({ data, resolution, onResChange, showDuplicates, onToggleDuplicates, onSlotClick }) {
+  const canvasRef   = useRef(null)
+  const chartRef    = useRef(null)
+  const slotMinsRef = useRef([])
 
   useEffect(() => {
     if (!canvasRef.current) return
@@ -24,6 +25,11 @@ export default function TimelineChart({ data, resolution, onResChange, showDupli
     const slots    = getSlots(data, resolution)
     const nPoints  = slots.length
     const ptRadius = nPoints > 120 ? 0 : 3
+
+    slotMinsRef.current = slots.map(([label]) => {
+      const [h, m] = label.split(':').map(Number)
+      return h * 60 + m
+    })
 
     let dupSlots = null
     if (showDuplicates && data.length) {
@@ -65,6 +71,14 @@ export default function TimelineChart({ data, resolution, onResChange, showDupli
       data: { labels: slots.map(s => s[0]), datasets },
       options: {
         responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        onClick: (evt, elements) => {
+          if (!onSlotClick || !elements.length) return
+          const idx = elements[0].index
+          const label = slots[idx][0]
+          const slotMin = slotMinsRef.current[idx]
+          onSlotClick(slotMin, label, resolution)
+        },
         plugins: {
           legend: {
             display: !!dupSlots,
@@ -86,7 +100,7 @@ export default function TimelineChart({ data, resolution, onResChange, showDupli
     })
 
     return () => chartRef.current?.destroy()
-  }, [data, resolution, showDuplicates])
+  }, [data, resolution, showDuplicates, onSlotClick])
 
   return (
     <>

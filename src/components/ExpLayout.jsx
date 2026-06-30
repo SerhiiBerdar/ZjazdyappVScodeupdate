@@ -178,12 +178,20 @@ export default function ExpLayout({ allData, stStats }) {
   }, [fitToView])
 
   const expNames  = new Set(EXP_NODES.map(n => n.id.toUpperCase()))
+  const laneNames = new Set(EXP_NODES.filter(n => n.type === 'S').map(n => n.id.toUpperCase()))
   const expData   = stStats.filter(s => expNames.has(s.station.toUpperCase()))
   const expTotal  = expData.reduce((s,n) => s+n.count, 0)
   const expActive = expData.length
   const expKlt    = new Set(allData.filter(d => expNames.has(d.station.toUpperCase())).map(d => d.barcode)).size
   const hb = {}; allData.forEach(d => { hb[d.hour] = (hb[d.hour]||0)+1 })
   const peak = Object.entries(hb).sort((a,b) => b[1]-a[1])[0]
+
+  // zjazd (output lane L*) statistics
+  const laneData = expData
+    .filter(s => laneNames.has(s.station.toUpperCase()))
+    .sort((a, b) => b.count - a.count)
+  const laneTotal = laneData.reduce((s, n) => s + n.count, 0)
+  const topLane   = laneData[0] || null
 
   // diagnostika: stanice z dát, ktoré vyzerajú ako expedičné (L* / SL*),
   // ale v layoute sa nenašli — odhalí reálne nezrovnalosti v názvoch
@@ -204,12 +212,81 @@ export default function ExpLayout({ allData, stStats }) {
         <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>Klikni na stanicu → detail · Ťahaj myšou alebo scrolluj = posun · Ctrl + koliesko / tlačidlá = priblíženie</div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 14, marginBottom: 20 }}>
         <StatCard label="Záznamy v EXP"    value={expTotal.toLocaleString('sk')}  sub="priechodov celkovo"  accent="var(--accent)" />
         <StatCard label="Aktívne stanice"  value={expActive}                      sub="unikátnych staníc"   accent="var(--accent2)" />
         <StatCard label="KLT prepravky"    value={expKlt.toLocaleString('sk')}    sub="unikátnych KLT"      accent="var(--accent4)" />
-        <StatCard label="Vrcholová hodina" value={peak ? `${peak[0]}:00` : '—'} sub={peak ? `${peak[1].toLocaleString('sk')} priechodov` : ''} accent="var(--accent3)" />
+        <StatCard label="Vrcholová hodina" value={peak ? `${peak[0]}:00` : '—'}  sub={peak ? `${peak[1].toLocaleString('sk')} priechodov` : ''} accent="var(--accent3)" />
+        <StatCard
+          label="Najvyťaženejší zjazd"
+          value={topLane ? topLane.station : '—'}
+          sub={topLane && laneTotal > 0 ? `${((topLane.count / laneTotal) * 100).toFixed(1)} % z lánok` : 'žiadne dáta'}
+          accent="#FF9F0A"
+        />
       </div>
+
+      {/* Zjazd % ranking */}
+      {laneData.length > 0 && (
+        <div style={{
+          background: 'var(--bg-elevated, rgba(255,255,255,0.03))',
+          border: '1px solid var(--border)',
+          borderRadius: 12, padding: '14px 16px', marginBottom: 16,
+        }}>
+          <div style={{
+            fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)',
+            textTransform: 'uppercase', letterSpacing: '0.7px', marginBottom: 12,
+          }}>
+            Zaťaženosť zjazdy — top {Math.min(laneData.length, 15)}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            {laneData.slice(0, 15).map((lane, i) => {
+              const pct = laneTotal > 0 ? (lane.count / laneTotal) * 100 : 0
+              const maxPct = laneTotal > 0 ? (laneData[0].count / laneTotal) * 100 : 1
+              const barW = (pct / maxPct) * 100
+              const isTop = i === 0
+              return (
+                <div key={lane.station} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{
+                    fontFamily: 'var(--font-mono)', fontSize: 11,
+                    color: isTop ? '#FF9F0A' : 'var(--text-secondary)',
+                    width: 52, flexShrink: 0, fontWeight: isTop ? 700 : 400,
+                  }}>
+                    {lane.station}
+                  </span>
+                  <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden' }}>
+                    <div style={{
+                      height: '100%', borderRadius: 3,
+                      width: `${barW}%`,
+                      background: isTop
+                        ? 'linear-gradient(90deg,#FF9F0A,#FFD60A)'
+                        : 'rgba(200,255,0,0.45)',
+                      transition: 'width 0.4s var(--ease)',
+                    }} />
+                  </div>
+                  <span style={{
+                    fontSize: 10, fontFamily: 'var(--font-mono)',
+                    color: isTop ? '#FF9F0A' : 'var(--text-tertiary)',
+                    width: 40, textAlign: 'right', flexShrink: 0, fontWeight: isTop ? 700 : 400,
+                  }}>
+                    {pct.toFixed(1)} %
+                  </span>
+                  <span style={{
+                    fontSize: 10, color: 'var(--text-tertiary)',
+                    width: 52, textAlign: 'right', flexShrink: 0,
+                  }}>
+                    {lane.count.toLocaleString('sk')}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+          {laneData.length > 15 && (
+            <div style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 8, textAlign: 'right' }}>
+              + {laneData.length - 15} ďalších zjazdy
+            </div>
+          )}
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: 16, marginBottom: 10, fontSize: 11, color: 'var(--text2)' }}>
         <span>🟥 Sorter / Divertor</span><span>🟩 Stanica</span><span>🟣 Prítok / Transfer</span>

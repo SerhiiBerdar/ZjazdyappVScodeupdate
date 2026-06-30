@@ -11,6 +11,7 @@ import FilterBar from './FilterBar'
 import ManualEntryForm from './ManualEntryForm'
 import ExcelImport from './ExcelImport'
 import CidloDetailPanel from './CidloDetailPanel'
+import SlotDrillPanel from './SlotDrillPanel'
 import { chronoHours } from '../utils/parser'
 import { exportToExcel } from '../utils/excelExport'
 
@@ -25,6 +26,7 @@ export default function Dashboard({ allData, stStats, flowData, parseStatus, onP
   const [heatN, setHeatN]           = useState(25)
   const [kltSearch, setKltSearch]   = useState('')
   const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [drillSlot, setDrillSlot]   = useState(null) // { label, resMin, records }
 
   const filtered = allData.filter(d => {
     if (filters.barcode && !d.barcode.includes(filters.barcode)) return false
@@ -53,6 +55,14 @@ export default function Dashboard({ allData, stStats, flowData, parseStatus, onP
 
   const handleParse = () => onParse(pasteText)
   const handleClear = () => { onClear(); setPasteText(''); setFilters({ barcode:'', station:'', hour:'' }) }
+
+  const handleSlotClick = useCallback((slotMin, label, resMin) => {
+    const records = filtered.filter(d => {
+      const dm = Math.floor((d.hour * 60 + d.minute) / resMin) * resMin
+      return dm === slotMin
+    })
+    setDrillSlot({ label, resMin, records })
+  }, [filtered])
 
   const INPUT_TABS = [
     { id: 'paste',  label: 'Vložiť text' },
@@ -288,6 +298,7 @@ export default function Dashboard({ allData, stStats, flowData, parseStatus, onP
             <TimelineChart
               data={filtered} resolution={timelineRes} onResChange={setTimelineRes}
               showDuplicates={timelineDuplicates} onToggleDuplicates={setTimelineDuplicates}
+              onSlotClick={handleSlotClick}
             />
           </div>
 
@@ -310,7 +321,7 @@ export default function Dashboard({ allData, stStats, flowData, parseStatus, onP
             <FlowChart flowData={flowData} stations={allStations} />
           </div>
 
-          <div className="card fade-in-up delay-5" style={{ padding: 20, marginBottom: 12 }}>
+          <div id="klt-trace-section" className="card fade-in-up delay-5" style={{ padding: 20, marginBottom: 12 }}>
             <KltTrace allData={allData} search={kltSearch} onSearchChange={setKltSearch} />
           </div>
 
@@ -327,6 +338,22 @@ export default function Dashboard({ allData, stStats, flowData, parseStatus, onP
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
       />
+
+      {drillSlot && (
+        <SlotDrillPanel
+          slotLabel={drillSlot.label}
+          resMin={drillSlot.resMin}
+          records={drillSlot.records}
+          onClose={() => setDrillSlot(null)}
+          onSelectBarcode={bc => {
+            setKltSearch(bc)
+            setDrillSlot(null)
+            setTimeout(() => {
+              document.getElementById('klt-trace-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            }, 80)
+          }}
+        />
+      )}
 
       {/* ── Empty state ── */}
       {!allData.length && (
